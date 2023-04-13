@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://unpkg.com/vue"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/3.8.2/js-yaml.min.js"></script>
+	<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
+	<script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+    <title>Sentence Classifier Configuration Builder</title>
+</head>
+
+<body>
+<form method="POST" id="sentence_classification" novalidate="novalidate">
+
+<div id="app">
+    <div class="col-md-6 col-lg-6 col-sm-12">
+        <h3>Sentence Classifier Configuration Builder</h3>
+        <div id="app">
+            <div class="form-group">
+                <label for="txtReplicas">Project name:</label>
+                <input class="form-control" id="projectName" name="projectName"/>
+				Examples:
+				<pre>
+narrative sentence classification
+question classification
+				</pre>
+            </div>
+
+
+			<!-- I. Meta Configuration Block -->
+			<div class="panel panel-primary" v-if="HasOneOrMoreServicePorts">
+				<div class="panel-heading">
+					<h4 class="panel-title">Meta Configurations</h4>
+				</div>
+				<div class="panel-body">
+					<div class="form-group">
+						<label for="txtReplicas">Path to train data:</label>
+						<input class="form-control" id="trainPath" name="trainPath" v-bind:placeholder="trainPath" />
+					</div>
+					<div class="form-group">
+						<label for="txtReplicas">Path to test data:</label>
+						<input class="form-control" id="testPath" name="testPath" v-bind:placeholder="testPath" />
+					</div>
+					<div class="form-group">
+						<label for="txtReplicas">Random state:</label>
+						<input class="form-control" id="randomState" name="randomState" v-bind:placeholder="randomState" />
+					</div>
+					<div class="form-group">
+						<label for="txtReplicas">Test Ratio:</label>
+						<input class="form-control" id="testRatio" name="testRatio" v-bind:placeholder="testRatio" />
+					</div>
+					<div class="form-group">
+						<label for="txtReplicas">KFold:</label>
+						<input class="form-control" id="kFold" name="kFold" v-bind:placeholder="kFold" />
+					</div>
+				</div>
+			</div>
+
+			<!-- II. Data Configuration Block -->
+			<div class="panel panel-primary" v-if="HasOneOrMoreServicePorts">
+				<div class="panel-heading">
+					<h4>Data Configurations</h4>
+				</div>
+				<div class="panel-body">
+					<div class="form-group">
+						<label for="txtReplicas">Text column name:</label>
+						<input class="form-control" id="textCol" name="textCol" v-bind:placeholder="TextCol" />
+					</div>
+					<div class="form-group">
+						<label for="txtReplicas">Label column name:</label>
+						<input class="form-control" id="labelCol" name="labelCol" v-bind:placeholder="LabelCol" />
+					</div>
+					<div class="form-group">
+						<label for="txtReplicas">Labels:</label>
+						<input class="form-control" id="labels" name="labels" v-bind:placeholder="Labels" placeholder="Labels are separated by comma"/>
+					</div>
+				</div>
+			</div>
+
+			<!-- III. Preprocessors Configuration Block -->
+			<div class="panel panel-primary" v-if="HasOneOrMoreServicePorts">
+				<div class="panel-heading">
+					<h4>Preprocessors Configurations</h4>
+				</div>
+				<div class="panel-body">
+					<div class="col-lg-6 col-md-6 col-sm-6" style=" margin-top:10px;" v-show="port.ExposeViaService">
+						<div>
+							<label for="selPreprocessor">Preprocessor:</label>
+							<select class="form-control" name="selPreprocessor" ID="selPreprocessor" style="min-width: 100px;">
+								<option>Choose Text Preprocessor</option>
+								<option value="lowercase">Lowercase</option>
+								<option value="tokenizer">Tokenizer</option>
+							</select>
+						</div>
+
+						<!-- III. (1). Preprocesor: Lowercase -->
+						<br>
+						<div class="panel panel-primary" id="lowercasePreprocessor" v-if="HasOneOrMoreServicePorts" style="display: none">
+							<div class="panel-heading">
+								<h6 class="panel-title">Lowercase Preprocessor Configuration</h6>
+								<span class="pull-right clickable" data-effect="remove"><i class="fa fa-times"></i>Remove</span>
+							</div>
+							<div class="panel-body">
+								<div class="form-group">
+									<label for="lowercaseName">Lowercase preprocessor name:</label>
+									<input type="lowercaseName" class="form-control" id="lowercaseName" name="lowercaseName"/>
+								</div>
+								<div class="form-group">
+									<label for="lowercaseInput">Input:</label>
+									<input type="lowercaseInput" class="form-control" id="lowercaseInput" name="lowercaseInput"/>
+								</div>
+								<div class="form-group">
+									<label for="lowercaseOutput">Output:</label>
+									<input type="lowercaseOutput" class="form-control" id="lowercaseOutput" name="lowercaseOutput"/>
+								</div>
+							</div>
+						</div>
+						
+						<!-- III. (2) Preprocesor: Tokenizer -->
+						<div class="panel panel-primary" id="tokenizerPreprocessor" v-if="HasOneOrMoreServicePorts" style="display: none">
+							<div class="panel-heading">
+								<h6 class="panel-title">Tokenizer Preprocessor Configuration</h6>
+								<span class="pull-right clickable" data-effect="remove"><i class="fa fa-times"></i>Remove</span>
+							</div>
+							<div class="panel-body">
+								<div class="form-group">
+									<label for="tokenizerName">Tokenizer preprocessor name:</label>
+									<input type="tokenizerName" class="form-control" id="tokenizerName" name="tokenizerName"/>
+								</div>
+								<div class="form-group">
+									<label for="tokenizerInput">Input:</label>
+									<input type="tokenizerInput" class="form-control" id="tokenizerInput" name="tokenizerInput"/>
+								</div>
+								<div class="form-group">
+									<label for="tokenizerOutput">Output:</label>
+									<input type="tokenizerOutput" class="form-control" id="tokenizerOutput" name="tokenizerOutput"/>
+								</div>
+							</div>
+						</div>
+
+						
+						
+					</div>
+				</div>
+			</div>
+
+			<!-- IV. Feature Extractors Configuration Block -->
+			<div class="panel panel-primary" v-if="HasOneOrMoreServicePorts">
+				<div class="panel-heading">
+					<h4>Feature Extractors Configurations</h4>
+				</div>
+				<div class="panel-body">
+					<div class="col-lg-6 col-md-6 col-sm-6" style=" margin-top:10px;" v-show="port.ExposeViaService">
+						<div>
+							<label for="selFeatureExtractor">Feature Extractions:</label>
+							<select class="form-control" name="selFeatureExtractor" ID="selFeatureExtractor" style="min-width: 100px;">
+								<option>Choose Feature Extractor</option>
+								<option value="composite">CompositeFeatureExtractor</option>
+								<option value="tfidf">TfidfFeatureExtractor</option>
+								<option value="flairtfidf">FlairTfidfFeatureExtractor</option>
+							</select>
+						</div>
+
+					<!-- IV. (1). FeatureExtractor: CompositeFeatureExtractor -->
+					<br>
+					<div class="panel panel-primary" id="compositeFeatureExtractor" v-if="HasOneOrMoreServicePorts" style="display: none">
+						<div class="panel-heading">
+							<h6 class="panel-title">CompositeFeatureExtractor Configuration</h6>
+							<span class="pull-right clickable" data-effect="hide"><i class="fa fa-times"></i>Remove</span>
+						</div>
+						<div class="panel-body">
+							<label for="compositeFEName">CompositeFeatureExtractor name:</label>
+							<input type="compositeFEName" class="form-control" id="compositeFEName" name="compositeFEName"/>
+ 						</div>
+						<div class="panel-body">
+							<label for="compositeFEInput">Input:</label>
+							<input type="compositeFEInput" class="form-control" id="compositeFEInput" name="compositeFEInput"/>
+ 						</div>
+						<div class="panel-body">
+							<label for="compositeFEOutput">Output:</label>
+							<input type="compositeFEOutput" class="form-control" id="compositeFEOutput" name="compositeFEOutput"/>
+ 						</div>
+						<div class="panel-body">
+							<label for="compositeFEMembers">Members:</label>
+							<select class="form-control" name="selCompositeMember" value="selCompositeMember" ID="selCompositeMember" style="min-width: 100px;">
+								<option>Choose a Member Feature Extractor</option>
+								<option value="keyword">KeywordFeatureExtractor</option>
+							</select>
+							<ul id="compositeMemberList">
+								<li>Default</li>
+							</ul>
+ 						</div>
+					</div>
+
+					<!-- IV. (1). (a). CompositeFeatureExtractor Members: keywordFeatureExtractor -->
+					<br>
+					<div class="panel panel-primary" id="keywordMember" v-if="HasOneOrMoreServicePorts" style="display: none">
+						<div class="panel-heading">
+							<h6 class="panel-title">KeywordFeatureExtractor Configuration</h6>
+							<span class="pull-right clickable" data-effect="hide"><i class="fa fa-times"></i>Remove</span>
+						</div>				 
+						<div class="panel-body">
+							<label for="keywordFEName">CompositeFeatureExtractor name:</label>
+							<input type="keywordFEName" class="form-control" id="keywordFEName" name="keywordFEName"/>
+ 						</div>
+						<div class="panel-body">
+							<label for="keywordFEKeywords">Keywords:</label>
+							<input type="keywordFEKeywords" class="form-control" id="keywordFEKeywords" name="keywordFEKeywords"/>
+ 						</div>
+						<input type="button" value="Add feature extractor" id="addCompositeMember">
+					</div>
+
+					<!-- IV. (2). FeatureExtractor: TfidfFeatureExtractor -->
+					<br>
+					<div class="panel panel-primary" id="tfidfFeatureExtractor" v-if="HasOneOrMoreServicePorts" style="display: none">
+						<div class="panel-heading">
+							<h6 class="panel-title">TfidfFeatureExtractor Configuration</h6>
+							<span class="pull-right clickable" data-effect="hide"><i class="fa fa-times"></i>Remove</span>
+						</div>
+						<div class="panel-body">
+							<label for="tfidfFEName">TfidfFeatureExtractor name:</label>
+							<input type="tfidfFEName" class="form-control" id="tfidfFEName" name="tfidfFEName"/>
+ 						</div>
+						<div class="panel-body">
+							<label for="tfidfFEInput">Input:</label>
+							<input type="tfidfFEInput" class="form-control" id="tfidfFEInput" name="tfidfFEInput"/>
+ 						</div>
+						<div class="panel-body">
+							<label for="tfidfFEOutput">Output:</label>
+							<input type="tfidfFEOutput" class="form-control" id="tfidfFEOutput" name="tfidfFEOutput"/>
+ 						</div>
+						<div class="panel-body">
+							<label for="tfidfFEVecPath">Vectorizer Path:</label>
+							<input type="tfidfFEVecPath" class="form-control" id="tfidfFEVecPath" name="tfidfFEVecPath"/>
+ 						</div>
+						<div class="panel-body">
+							<label for="tfidfFEMaxFeats">Maxium Feature:</label>
+							<input type="tfidfFEMaxFeats" class="form-control" id="tfidfFEMaxFeats" name="tfidfFEMaxFeats"/>
+ 						</div>
+					</div>
+
+					<!-- IV. (3). FeatureExtractor: FlairTfidfFeatureExtractor -->
+					<br>
+					<div class="panel panel-primary" id="flairtfidfFeatureExtractor" v-if="HasOneOrMoreServicePorts" style="display: none">
+						<div class="panel-heading">
+							<h6 class="panel-title">Flair TfidfFeatureExtractor Configuration</h6>
+							<span class="pull-right clickable" data-effect="hide"><i class="fa fa-times"></i>Remove</span>
+						</div>
+						<div class="panel-body">
+							<label for="flairtfidfFEName">FlairTfidfFeatureExtractor name:</label>
+							<input type="flairtfidfFEName" class="form-control" id="flairtfidfFEName" name="flairtfidfFEName"/>
+ 						</div>
+						<div class="panel-body">
+							<label for="flairtfidfFEInput">Input:</label>
+							<input type="flairtfidfFEInput" class="form-control" id="flairtfidfFEInput" name="flairtfidfFEInput"/>
+ 						</div>
+						<div class="panel-body">
+							<label for="flairtfidfFEOutput">Output:</label>
+							<input type="flairtfidfFEOutput" class="form-control" id="flairtfidfFEOutput" name="flairtfidfFEOutput"/>
+ 						</div>
+						<div class="panel-body">
+							<label for="tfidfFEVecPath">Vectorizer Path:</label>
+							<input type="flairtfidfFEVecPath" class="form-control" id="flairtfidfFEVecPath" name="flairtfidfFEVecPath"/>
+ 						</div>
+						<div class="panel-body">
+							<label for="flairtfidfFEMaxFeats">Maxium Feature:</label>
+							<input type="flairtfidfFEMaxFeats" class="form-control" id="flairtfidfFEMaxFeats" name="flairtfidfFEMaxFeats"/>
+ 						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- V. Classifier Algorithms Block -->
+			<div class="panel panel-primary" v-if="HasOneOrMoreServicePorts">
+				<div class="panel-heading">
+					<h4>Classifier Algorithms Configurations</h4>
+				</div>
+				<div class="panel-body">
+					<div class="col-lg-6 col-md-6 col-sm-6" style=" margin-top:10px;" v-show="port.ExposeViaService">
+						<div>
+							<label for="selClassifier">Classifiers:</label>
+							<select class="form-control" name="selClassifier" ID="selClassifier" style="min-width: 100px;">
+								<option>Choose Classifier Algorithm</option>
+								<option value="logisticreg">LogisticRegressionClassifier</option>
+								<option value="huggingface">HuggingFaceClassifier</option>>
+							</select>
+						</div>
+
+						<!-- V. (1). Classifier: LogisticRegressionClassifier -->
+						<br>
+						<div class="panel panel-primary" id="logisticregClassifier" v-if="HasOneOrMoreServicePorts" style="display: none">
+							<div class="panel-heading">
+								<h6 class="panel-title">Logistic Regression Classifier</h6>
+								<span class="pull-right clickable" data-effect="hide"><i class="fa fa-times"></i>Remove</span>
+							</div>
+							<div class="panel-body">
+								<div class="form-group">
+									<label for="logisticregInput">Input:</label>
+									<input type="logisticregInput" class="form-control" id="logisticregInput" name="logisticregInput"/>
+								</div>
+								<div class="form-group">
+									<label for="logisticregOutput">Output:</label>
+									<input type="logisticregOutput" class="form-control" id="logisticregOutput" name="logisticregOutput"/>
+								</div>
+								<div class="form-group">
+									<label for="logisticregParams">Parameters (TODO):</label>
+									<input type="logisticregParams" class="form-control" id="logisticregParams" name="logisticregParams"/>
+								</div>
+							</div>
+						</div>
+
+						<!-- V. (2). Classifier: HuggingFaceClassifier -->
+						<br>
+						<div class="panel panel-primary" id="huggingfaceClassifier" v-if="HasOneOrMoreServicePorts" style="display: none">
+							<div class="panel-heading">
+								<h6 class="panel-title">Hugging Face Classifier</h6>
+								<span class="pull-right clickable" data-effect="hide"><i class="fa fa-times"></i>Remove</span>
+							</div>
+							<div class="panel-body">
+								<div class="form-group">
+									<label for="huggingfaceInput">Input:</label>
+									<input type="huggingfaceInput" class="form-control" id="huggingfaceInput" name="huggingfaceInput"/>
+								</div>
+								<div class="form-group">
+									<label for="huggingfaceOutput">Output:</label>
+									<input type="huggingfaceOutput" class="form-control" id="huggingfaceOutput" name="huggingfaceOutput"/>
+								</div>
+								<div class="form-group">
+									<label for="huggingfaceModelName">Pre-trained Model Name:</label>
+									<input type="huggingfaceModelName" class="form-control" id="huggingfaceModelName" name="huggingfaceModelName"/>
+								</div>
+								<div class="form-group">
+									<label for="huggingfaceParams">Parameters (TODO):</label>
+									<input type="huggingfaceParams" class="form-control" id="huggingfaceParams" name="huggingfaceParams"/>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+        </div>
+
+		<button type="submit">Submit</button>
+	</form>
+    </div>
+
+
+	<div class="col-md-6 col-lg-6 col-sm-12">
+<h4>Generated YAML</h4>
+<pre>
+{{DeploymentYaml}}
+<template v-if="HasOneOrMoreServicePorts">---
+{{ServiceYaml}}
+</template>
+</pre>
+	</div>
+</div>
+	<!-- script to show different preprocessor configurations -->
+	<script>
+		$(document).ready(function(){
+			$("#selPreprocessor").on("change", function(){
+				var selPreprocessorValue = $(this).val();
+				$("#"+selPreprocessorValue+"Preprocessor").show();
+			});
+		});
+	</script>
+
+	<!-- script to show different feature extractor configurations -->
+	<script>
+		$(document).ready(function(){
+			$("#selCompositeMember").on("change", function(){
+				var selCompositeMemberValue = $(this).val();
+				$("#"+selCompositeMemberValue+"Member").show();
+			});
+		});
+	</script>
+
+	<!-- script to show a composite feature extractor member -->
+	<script>
+		$(document).ready(function(){
+			$("#selFeatureExtractor").on("change", function(){
+				var selFeatureExtractorValue = $(this).val();
+				$("#"+selFeatureExtractorValue+"FeatureExtractor").show();
+			});
+		});
+	</script>
+
+	<!-- script to show different classifier configurations -->
+	<script>
+		var prevClassifierId;
+		$(document).ready(function(){
+			$("#selClassifier").on("change", function(){
+				// debugging: print out the prevClassifierID
+				// console.log("before: " + prevClassifierId);
+				$("#"+prevClassifierId+"Classifier").hide();
+				var selClassifierValue = $(this).val();
+				$("#"+selClassifierValue+"Classifier").show();
+				prevClassifierId = selClassifierValue;
+			});
+		});
+	</script>
+
+	<!-- script function: remove a sub-panel -->
+	<script>
+		$(function(){
+			$('.clickable').on('click',function(){
+				var effect = $(this).data('effect');
+					$(this).closest('.panel')[effect]();
+					console.log($(this));
+				})
+		})
+	</script>
+	
+
+	<!-- set up a click function handling for the Add button -->
+	<script>
+		$("#addCompositeMember").click(function(){
+			
+			var selectedMember = $("selCompositeMember");
+			var selectedMemberVal = selectedMember.val();
+			console.log(selectedMember);
+			// # TODO: why the selectedMemberVal() is undefined?
+			console.log(selectedMemberVal); 
+			$("ul").append("<li>"+selectedMemberVal+"</li>")
+		});
+	</script>
+
+	<!-- script to collect all elements values to generate the yaml file -->
+	<!-- <script>
+		$("#showYaml").click(function(){
+			var form_data = $("#sentence_classification").serializeArray();
+			var data = {};
+			$(form_data).each(function(index, obj){
+				data[obj.name] = obj.value;
+			});
+			console.log(data);
+		})
+	</script> -->
+
+	<!-- <script type="text/javascript">
+		$("#showYaml").on("click", function(){
+			var form_data = new FormData();
+			var kFold = document.getElementById("kFold");
+
+			$ajax({
+				"kFoldVal": kFold
+			})
+		})
+	</script> -->
+
+</body>
+
+</html>
